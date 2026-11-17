@@ -2,7 +2,7 @@ import sys
 import os
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, 
-    QStackedWidget, QLabel, QGraphicsOpacityEffect)
+    QStackedWidget, QLabel, QGraphicsOpacityEffect, QSlider)
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import (
     QFile, QTimer, Qt, QPropertyAnimation, 
@@ -10,6 +10,7 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QShortcut, QKeySequence, QPixmap, QColor, QPainter
 
 from GaugeBars import SpeedCircularGauge, RpmCircularGauge, VerticalFuelBar, DotMatrixShifter
+from SerialTelemetryManger import SerialTelemetryManager
 
 class SplashOverlay(QWidget):
     """Açılışta tüm ekranı kaplayan, logo ve yazıyı birlikte gösteren animasyon katmanı"""
@@ -77,9 +78,13 @@ class SplashOverlay(QWidget):
 class VehicleDashboard:
     def __init__(self, ui_path="mainwindow.ui", qss_path="style.qss", debugmode=False):
         self.debugmode = debugmode
+        self.battery_pct = 0
+        self.hydrrogecn_pct = 0
 
         self.load_stylesheet(qss_path)       # 1. Stil dosyasını (QSS) global olarak uygula
         self.window = self.load_ui(ui_path)  # 2. UI dosyasını doğrudan ana pencere olarak yükle
+
+        self.setup_settings_controls()  # Settings sayfası slider ve buton bağlantıları
 
         self.init_connections()              # 3. Sinyal ve slot bağlantıları
         self.init_event_loop_timer()         # 4. Qt Event Loop üzerinde çalışacak timer
@@ -95,6 +100,16 @@ class VehicleDashboard:
             self.splash = SplashOverlay(self.window, logo_path="assets/logo.png")
             self.splash.show()
             self.splash.raise_()
+
+        self.lbl_com_status = self.window.findChild(QLabel, "lbl_com_status")
+        if self.lbl_com_status:
+            self.lbl_com_status.setText("● COM Port: Bağlanıyor...")
+
+        self.uart = SerialTelemetryManager(port="COM3", baudrate=9600, header="<", footer=">")
+        self.uart.telemetry_received.connect(self.update_dashboard_telemetry)
+        self.uart.connection_status.connect(self.on_serial_status_changed)
+        self.uart.connection_status.connect(lambda ok, msg: self.window.statusbar.showMessage(msg))
+        self.uart.start()
 
     def load_stylesheet(self, qss_path):
         file = QFile(qss_path)
@@ -178,30 +193,181 @@ class VehicleDashboard:
     def main_loop_update(self):
         """Araç verilerinin güncelleneceği ana döngü fonksiyonu"""
 
-        if hasattr(self, 'speed_gauge'):
-            self.speed_gauge.set_value(53)
+        if self.debugmode:
+            if hasattr(self, 'speed_gauge'):
+                self.speed_gauge.set_value(53)
 
-        if hasattr(self, 'rpm_gauge'):
-            self.rpm_gauge.set_value(5353)
+            if hasattr(self, 'rpm_gauge'):
+                self.rpm_gauge.set_value(5353)
 
-        if hasattr(self, 'fuel_bar'):
-            self.fuel_bar.set_value(53)
-            self.fuel_bar.set_energy(1420)
-            self.fuel_bar.set_voltage(53)
+            if hasattr(self, 'fuel_bar'):
+                self.fuel_bar.set_value(53)
+                self.fuel_bar.set_energy(1420)
+                self.fuel_bar.set_voltage(53)
 
-        if hasattr(self, 'shifter'):
-            self.shifter.set_gear("D")
+            if hasattr(self, 'shifter'):
+                self.shifter.set_gear("D")
 
     def init_shortcuts(self):
         """Test aşamasında Esc tuşuna basıldığında programın kapanmasını sağlar"""
         self.escape_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self.window)
         self.escape_shortcut.activated.connect(self.window.close)
 
+    def setup_navigation(self):
+        # Diğer sayfa geçişleri...
+        self.btn_exit = self.window.findChild(QPushButton, "exitButton")
+        if self.btn_exit:
+            self.btn_exit.clicked.connect(self.close_application)
+
+    def close_application(self):
+        """Seri portu kapatır ve uygulamadan çıkar"""
+        if hasattr(self, "uart") and self.uart:
+            self.uart.stop()
+        self.window.close()
+
+    def setup_settings_controls(self):
+        """Settings sayfasındaki slider, oran etiketleri ve okButton bağlantıları"""
+        self.battery_pct = 0
+        self.hydrogen_pct = 100
+
+        self.ratio_slider = self.window.findChild(QSlider, "currenUsingRatioSlider")
+        self.btn_decrease = self.window.findChild(QPushButton, "sliderDecreaseButton")
+        self.btn_increase = self.window.findChild(QPushButton, "sliderIncreaseButton")
+        self.btn_zero = self.window.findChild(QPushButton, "sliderZeroValueButton")
+        self.btn_hundred = self.window.findChild(QPushButton, "sliderHunderedValueButton")
+        self.btn_ok = self.window.findChild(QPushButton, "okButton")
+
+        self.lbl_battery_use = self.window.findChild(QLabel, "batteryUseValue")
+        self.lbl_hydrogen_use = self.window.findChild(QLabel, "hydrogenUseValue")
+
+        if self.ratio_slider:
+            self.ratio_slider.setRange(0, 100)
+            self.ratio_slider.valueChanged.connect(self.on_ratio_slider_changed)
+            self.on_ratio_slider_changed(self.ratio_slider.value())
+
+        if self.btn_decrease:
+            self.btn_decrease.clicked.connect(lambda: self.adjust_ratio_slider(-5))
+
+        if self.btn_increase:
+            self.btn_increase.clicked.connect(lambda: self.adjust_ratio_slider(5))
+
+        if self.btn_zero:
+            self.btn_zero.clicked.connect(lambda: self.ratio_slider.setValue(0))
+
+        if self.btn_hundred:
+            self.btn_hundred.clicked.connect(lambda: self.ratio_slider.setValue(100))
+
+        # Sadece okButton'a basıldığında UART üzerinden gönder
+        if self.btn_ok:
+            self.btn_ok.clicked.connect(self.send_ratio_settings)
+
+    def on_ratio_slider_changed(self, value):
+        """Slider değiştikçe sınıf değişkenlerini ve etiketleri günceller (Henüz göndermez)"""
+        self.battery_pct = int(value)
+        self.hydrogen_pct = 100 - self.battery_pct
+
+        if self.lbl_battery_use:
+            self.lbl_battery_use.setText(f"%{self.battery_pct}")
+
+        if self.lbl_hydrogen_use:
+            self.lbl_hydrogen_use.setText(f"%{self.hydrogen_pct}")
+
+    def send_ratio_settings(self):
+        """okButton'a basıldığında güncel oranları UART üzerinden gönderir"""
+        if hasattr(self, "uart") and self.uart:
+            sent = self.uart.send_power_ratio(self.battery_pct, self.hydrogen_pct)
+            if sent:
+                self.window.statusbar.showMessage(
+                    f"Oranlar gönderildi -> Batarya: %{self.battery_pct}, Hidrojen: %{self.hydrogen_pct}", 3000
+                )
+            else:
+                self.window.statusbar.showMessage("Hata: Seri port bağlı değil!", 3000)
+
+    def adjust_ratio_slider(self, delta):
+        """Slider değerini verilen miktar kadar (+5 / -5) değiştirir"""
+        if self.ratio_slider:
+            new_val = max(0, min(100, self.ratio_slider.value() + delta))
+            self.ratio_slider.setValue(new_val)
+
+    def on_ratio_slider_changed(self, value):
+        """Slider değiştikçe Batarya ve Hidrojen kullanım yüzdelerini günceller"""
+        self.battery_pct = int(value)
+        self.hydrogen_pct = 100 - self.battery_pct
+
+        if self.lbl_battery_use:
+            self.lbl_battery_use.setText(f"%{self.battery_pct}")
+
+        if self.lbl_hydrogen_use:
+            self.lbl_hydrogen_use.setText(f"%{self.hydrogen_pct}")
+
+    def update_dashboard_telemetry(self, data: dict):
+        """UART üzerinden gelen verileri UI bileşenlerine aktarır ve batarya hesaplamalarını yapar"""
+        
+        # --- BATARYA PAKETİ SABİTLERİ (Kendi batarya paketinize göre düzenleyin) ---
+        MIN_VOLTAGE = 42.0       # %0 şarj voltajı (Örn: 14S Li-ion için 14 * 3.0V = 42.0V)
+        MAX_VOLTAGE = 58.8       # %100 şarj voltajı (Örn: 14S Li-ion için 14 * 4.2V = 58.8V)
+        TOTAL_CAPACITY_WH = 2500 # Bataryanın tam dolu toplam kapasitesi (Wh)
+        # -------------------------------------------------------------------------
+
+        # 1. Hız Kadranı
+        if hasattr(self, "speed_gauge"):
+            self.speed_gauge.set_value(data["speed"])
+
+        # 2. Batarya Voltajı, Yüzdesi ve Kalan Enerji (Wh) Hesabı
+        voltage = data["battery_voltage"]
+        
+        # Voltajı 0 - 100 aralığında yüzdeye oranla ve sınırla (clamp)
+        soc_percent = ((voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE)) * 100.0
+        soc_percent = max(0.0, min(100.0, soc_percent))
+
+        # Kalan enerji (Wh) hesabı
+        remaining_wh = (soc_percent / 100.0) * TOTAL_CAPACITY_WH
+
+        if hasattr(self, "fuel_bar"):
+            self.fuel_bar.set_battery_data(soc_percent, voltage, remaining_wh)
+
+        # 3. Vites Göstergesi
+        if hasattr(self, "shifter"):
+            gear_map = {-1: "R", 0: "N", 1: "D"}
+            gear_str = gear_map.get(data["gear"], str(data["gear"]))
+            self.shifter.set_gear(gear_str)
+
+        # 4. Sağ Telemetri Kartı Etiketleri
+        self.window.batteryCurrentValue.setText(f"{data['battery_current']:.1f} A")
+        self.window.batteryTemperatureValue.setText(f"{data['battery_temp']:.1f} °C")
+        self.window.chargePowerValue.setText(f"{data['charge_power']:.1f} W")
+        self.window.insulationResValue.setText(f"{data['insulation_res']:.0f} kΩ")
+
+    # Örnek Veri Gönderimi:
+    # self.uart.send_packet(65.0, 54.2, 18.5, 34.0, 0.0, 500.0, 1)
+
+    def on_serial_status_changed(self, is_connected: bool, message: str):
+            """COM port bağlantı durumuna göre settingsPage altındaki label'ı ve statusbar'ı günceller"""
+            lbl_status = getattr(self, "lbl_com_status", None)
+
+            if lbl_status:
+                if is_connected:
+                    lbl_status.setText(f"● BAĞLI ({message})")
+                    lbl_status.setStyleSheet(
+                        "background-color: #dcfce7; color: #15803d; font-size: 11pt; "
+                        "font-weight: 700; border-radius: 10px; padding: 6px 12px;"
+                    )
+                else:
+                    lbl_status.setText(f"● BAĞLI DEĞİL ({message})")
+                    lbl_status.setStyleSheet(
+                        "background-color: #fee2e2; color: #b91c1c; font-size: 11pt; "
+                        "font-weight: 700; border-radius: 10px; padding: 6px 12px;"
+                    )
+
+            self.window.statusbar.showMessage(message, 4000)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # debugmode=True yaparsanız logo animasyonu atlanır ve doğrudan ekran açılır
-    dashboard = VehicleDashboard(debugmode=True)
+    dashboard = VehicleDashboard(debugmode=False)
+
+    app.aboutToQuit.connect(dashboard.uart.stop)
 
     sys.exit(app.exec())

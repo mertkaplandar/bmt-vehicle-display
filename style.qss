@@ -17,7 +17,7 @@ QStackedWidget#stackedWidget {
 QLabel#headerText {
     background-color: transparent;
     color: #0f172a;
-    font-size: 22pt;
+    font-size: 30pt;
     font-weight: 800;
     letter-spacing: 4px;
     border: none;
@@ -212,7 +212,7 @@ QPushButton#sliderIncreaseButton:pressed {
 QPushButton#settingsButton {
     background-color: #e2e8f0;
     color: #0f172a;
-    border: none;
+    border: 1px solid ;
 }
 
 QPushButton#settingsButton:pressed {
@@ -235,7 +235,7 @@ QPushButton#backButton:pressed {
 QPushButton#exitButton {
     background-color: #fee2e2;
     color: #dc2626;
-    border: none;
+    border: 1px solid;
 }
 
 QPushButton#exitButton:pressed {
