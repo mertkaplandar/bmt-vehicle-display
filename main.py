@@ -186,6 +186,7 @@ class VehicleDashboard:
 
         if hasattr(self, 'fuel_bar'):
             self.fuel_bar.set_value(53)
+            self.fuel_bar.set_energy(1420)
             self.fuel_bar.set_voltage(53)
 
         if hasattr(self, 'shifter'):
@@ -201,6 +202,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # debugmode=True yaparsanız logo animasyonu atlanır ve doğrudan ekran açılır
-    dashboard = VehicleDashboard(debugmode=False)
+    dashboard = VehicleDashboard(debugmode=True)
 
     sys.exit(app.exec())

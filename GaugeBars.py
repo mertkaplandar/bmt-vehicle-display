@@ -25,8 +25,8 @@ class SpeedCircularGauge(QWidget):
         painter.setViewport((width - side) // 2, (height - side) // 2, side, side)
         painter.setWindow(0, 0, 200, 200)
 
-        cx, cy = 100, 100
-        radius = 75
+        cx, cy = 100, 105
+        radius = 90
 
         # 1. Arka plan gösterge halkası (İnce, modern pasif ark)
         bg_pen = QPen(QColor("#e2e8f0"), 8, Qt.SolidLine, Qt.RoundCap)
@@ -125,7 +125,7 @@ class RpmCircularGauge(QWidget):
         painter.setWindow(0, 0, 200, 200)
 
         cx, cy = 100, 100
-        radius = 75
+        radius = 90
 
         # 1. Arka plan gösterge halkası (İnce, modern pasif ark)
         bg_pen = QPen(QColor("#e2e8f0"), 8, Qt.SolidLine, Qt.RoundCap)
@@ -207,6 +207,7 @@ class VerticalFuelBar(QWidget):
         super().__init__(parent)
         self.value = 0          # Şarj yüzdesi (0 - 100)
         self.voltage = 0.0      # Voltaj değeri (V)
+        self.energy_wh = 0      # Kalan enerji (Wh)
         self.max_value = 100
 
     def set_value(self, val):
@@ -215,14 +216,20 @@ class VerticalFuelBar(QWidget):
         self.update()
 
     def set_voltage(self, volt):
-        """Voltaj değerini günceller"""
+        """Voltaj değerini günceller (V)"""
         self.voltage = max(0.0, float(volt))
         self.update()
 
-    def set_battery_data(self, val, volt):
-        """İsteğe bağlı olarak ikisini tek seferde günceller"""
+    def set_energy(self, wh):
+        """Kalan enerji miktarını günceller (Wh)"""
+        self.energy_wh = max(0.0, float(wh))
+        self.update()
+
+    def set_battery_data(self, val, volt, wh):
+        """İsteğe bağlı olarak üçünü tek seferde günceller"""
         self.value = max(0, min(val, self.max_value))
         self.voltage = max(0.0, float(volt))
+        self.energy_wh = max(0.0, float(wh))
         self.update()
 
     def paintEvent(self, event):
@@ -232,9 +239,9 @@ class VerticalFuelBar(QWidget):
         w = self.width()
         h = self.height()
 
-        # Üst başlık ve alt kısımdaki iki büyük yazı (Yüzde + Voltaj) için boşluklar
+        # Üst başlık ve alt kısımdaki üç veri (Yüzde + Wh + Voltaj) için boşluklar
         top_margin = 24
-        bottom_margin = 52
+        bottom_margin = 74
         bar_h = h - top_margin - bottom_margin
         if bar_h <= 10:
             return
@@ -247,8 +254,8 @@ class VerticalFuelBar(QWidget):
 
         # 1. Üst etiket
         painter.setPen(QColor("#64748b"))
-        painter.setFont(QFont("Segoe UI", 13, QFont.Bold))
-        painter.drawText(QRectF(1, 2, w, 20), Qt.AlignCenter, "BATERY")
+        painter.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        painter.drawText(QRectF(0, 2, w, 20), Qt.AlignCenter, "BATTERY")
 
         # 2. Arka plan gövdesi
         bg_rect = QRectF(bar_x, bar_y, bar_w, bar_h)
@@ -303,16 +310,21 @@ class VerticalFuelBar(QWidget):
                     str(v)
                 )
 
-        # 5. Alt kısımda büyütülmüş Şarj Yüzdesi ve Voltaj Etiketleri
-        # Şarj Yüzdesi
+        # 5. Alt kısımda Şarj Yüzdesi, Kalan Enerji (Wh) ve Voltaj Etiketleri
+        # Şarj Yüzdesi (%)
         painter.setPen(QColor("#0f172a"))
-        painter.setFont(QFont("Segoe UI", 18, QFont.Bold))
-        painter.drawText(QRectF(0, h - 48, w, 24), Qt.AlignCenter, f"%{int(self.value)}")
+        painter.setFont(QFont("Segoe UI", 16, QFont.Bold))
+        painter.drawText(QRectF(0, h - 70, w, 22), Qt.AlignCenter, f"%{int(self.value)}")
 
-        # Voltaj Değeri
+        # Kalan Enerji (Wh)
+        painter.setPen(QColor("#0f766e"))
+        painter.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        painter.drawText(QRectF(0, h - 47, w, 21), Qt.AlignCenter, f"{int(self.energy_wh)} Wh")
+
+        # Voltaj Değeri (V)
         painter.setPen(QColor("#2563eb"))
-        painter.setFont(QFont("Segoe UI", 18, QFont.Bold))
-        painter.drawText(QRectF(0, h - 24, w, 22), Qt.AlignCenter, f"{self.voltage:.1f} V")
+        painter.setFont(QFont("Segoe UI", 15, QFont.Bold))
+        painter.drawText(QRectF(0, h - 25, w, 22), Qt.AlignCenter, f"{self.voltage:.1f} V")
 
 
 class DotMatrixShifter(QWidget):

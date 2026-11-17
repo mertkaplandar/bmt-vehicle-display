@@ -1,50 +1,141 @@
-/* Genel Pencere ve Widget'lar için Beyaz/Açık Tema */
-QMainWindow, QWidget {
-    background-color: #f8f9fa;
-    color: #212529;
+/* =========================================================
+   BMT MACH - Modern Otomotiv Gösterge Paneli (Clean Light UI)
+   ========================================================= */
+
+/* Ana Zemin: Hafif soğuk gri tonu (Beyaz kartları kenarlıksız ön plana çıkarır) */
+QMainWindow,
+QWidget#centralwidget,
+QWidget#mainPage,
+QWidget#settingsPage,
+QStackedWidget#stackedWidget {
+    background-color: #eef2f6;
+    color: #0f172a;
+    font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
 }
 
-/* Etiketler (Labels) */
-QLabel {
-    color: #212529;
+/* Üst Başlık ("BMT MACH" - Yeni adı: headerText) */
+QLabel#headerText {
     background-color: transparent;
+    color: #0f172a;
+    font-size: 28pt;
+    font-weight: 800;
+    letter-spacing: 4px;
+    border: none;
 }
 
-/* Butonlar */
+/* Ana Gösterge Kartları (Hız, Batarya ve Sağ Telemetri Paneli) */
+QWidget#speedGaugeContainer,
+QWidget#fuelContainer,
+QFrame#carInfoFrame {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+}
+
+/* Vites Göstergesi (Kendi matris çerçevesine sahip) */
+QWidget#shifterContainer {
+    background-color: transparent;
+    border: none;
+}
+
+/* Telemetri İkon Alanları - Yumuşak pastel vurgu, sıfır kenarlık */
+QLabel#batteryCurrentImage,
+QLabel#batteryTemperatureImage,
+QLabel#chargePowerImage,
+QLabel#insulationResImage {
+    background-color: #eff6ff;
+    border: none;
+    border-radius: 10px;
+    padding: 6px;
+}
+
+/* Telemetri Başlıkları - İkincil kontrast, sade */
+QLabel#batteryCurrentText,
+QLabel#batteryTemperatureText,
+QLabel#chargePowerText,
+QLabel#insulationResText {
+    background-color: transparent;
+    color: #64748b;
+    font-size: 15pt;
+    font-weight: 700;
+    border: none;
+}
+
+/* Telemetri Sayısal Değerleri - Sürücü odağı için maksimum kontrast ve boyut */
+QLabel#batteryCurrentValue,
+QLabel#batteryTemperatureValue,
+QLabel#chargePowerValue,
+QLabel#insulationResValue {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-size: 19pt;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    padding: 8px;
+}
+
+/* Modern Dokunmatik Butonlar */
 QPushButton {
     background-color: #ffffff;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    color: #212529;
-    font-weight: bold;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    font-size: 11pt;
+    font-weight: 700;
+    padding: 6px 10px;
 }
 
 QPushButton:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
+    background-color: #f1f5f9;
 }
 
 QPushButton:pressed {
-    background-color: #dee2e6;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
 }
 
-/* QStackedWidget ve Sayfalar */
-QStackedWidget {
-    background-color: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
+/* Settings Butonu */
+QPushButton#settingsButton {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    border: none;
 }
 
-/* İlerleme Çubukları (QProgressBar) */
-QProgressBar {
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    background-color: #e9ecef;
-    text-align: center;
-    color: #212529;
+QPushButton#settingsButton:pressed {
+    background-color: #2563eb;
+    color: #ffffff;
 }
 
-QProgressBar::chunk {
-    background-color: #0d6efd; /* Şık bir mavi tonu */
-    border-radius: 5px;
+/* Back Butonu */
+QPushButton#backButton {
+    background-color: #0f172a;
+    color: #ffffff;
+    border: none;
+}
+
+QPushButton#backButton:pressed {
+    background-color: #2563eb;
+}
+
+/* Exit Butonu */
+QPushButton#exitButton {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: none;
+}
+
+QPushButton#exitButton:pressed {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+/* Alt Durum Çubuğu */
+QStatusBar#statusbar {
+    background-color: #eef2f6;
+    color: #64748b;
+    border: none;
+    font-size: 9pt;
+    font-weight: 600;
 }
