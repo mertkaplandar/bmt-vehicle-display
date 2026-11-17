@@ -2,7 +2,7 @@
    BMT MACH - Modern Otomotiv Gösterge Paneli (Clean Light UI)
    ========================================================= */
 
-/* Ana Zemin: Hafif soğuk gri tonu (Beyaz kartları kenarlıksız ön plana çıkarır) */
+/* Ana Zemin: Hafif soğuk gri tonu */
 QMainWindow,
 QWidget#centralwidget,
 QWidget#mainPage,
@@ -13,11 +13,11 @@ QStackedWidget#stackedWidget {
     font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
 }
 
-/* Üst Başlık ("BMT MACH" - Yeni adı: headerText) */
+/* Üst Başlık ("BMT MACH") */
 QLabel#headerText {
     background-color: transparent;
     color: #0f172a;
-    font-size: 28pt;
+    font-size: 22pt;
     font-weight: 800;
     letter-spacing: 4px;
     border: none;
@@ -38,7 +38,7 @@ QWidget#shifterContainer {
     border: none;
 }
 
-/* Telemetri İkon Alanları - Yumuşak pastel vurgu, sıfır kenarlık */
+/* Ana Sayfa Telemetri İkon Alanları */
 QLabel#batteryCurrentImage,
 QLabel#batteryTemperatureImage,
 QLabel#chargePowerImage,
@@ -49,19 +49,19 @@ QLabel#insulationResImage {
     padding: 6px;
 }
 
-/* Telemetri Başlıkları - İkincil kontrast, sade */
+/* Ana Sayfa Telemetri Başlıkları */
 QLabel#batteryCurrentText,
 QLabel#batteryTemperatureText,
 QLabel#chargePowerText,
 QLabel#insulationResText {
     background-color: transparent;
     color: #64748b;
-    font-size: 15pt;
+    font-size: 10pt;
     font-weight: 700;
     border: none;
 }
 
-/* Telemetri Sayısal Değerleri - Sürücü odağı için maksimum kontrast ve boyut */
+/* Ana Sayfa Telemetri Sayısal Değerleri */
 QLabel#batteryCurrentValue,
 QLabel#batteryTemperatureValue,
 QLabel#chargePowerValue,
@@ -75,15 +75,87 @@ QLabel#insulationResValue {
     padding: 8px;
 }
 
-/* Modern Dokunmatik Butonlar */
+/* =========================================================
+   SETTINGS PAGE - Enerji Paylaşım Oranı (Batarya / Hidrojen)
+   ========================================================= */
+
+/* Dokunmatik Ekran İçin Kalınlaştırılmış Modern Slider */
+QSlider#currenUsingRatioSlider::groove:horizontal {
+    background: #cbd5e1;
+    height: 14px;
+    border-radius: 7px;
+}
+
+QSlider#currenUsingRatioSlider::sub-page:horizontal {
+    background: #2563eb;
+    height: 14px;
+    border-radius: 7px;
+}
+
+QSlider#currenUsingRatioSlider::add-page:horizontal {
+    background: #cbd5e1;
+    height: 14px;
+    border-radius: 7px;
+}
+
+QSlider#currenUsingRatioSlider::handle:horizontal {
+    background: #ffffff;
+    border: 4px solid #2563eb;
+    width: 28px;
+    height: 28px;
+    margin: -11px 0;
+    border-radius: 18px;
+}
+
+QSlider#currenUsingRatioSlider::handle:horizontal:pressed {
+    background: #2563eb;
+    border-color: #1d4ed8;
+}
+
+/* Ayarlar Sayfası Etiketleri ("Batarya:", "Hidrojen:") */
+QLabel#batteryText,
+QLabel#hydrogenText {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 14pt;
+    font-weight: 700;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 14px;
+}
+
+/* Ayarlar Sayfası Oran Değerleri (Temiz Beyaz Kart Görünümü) */
+QLabel#batteryUseValue {
+    background-color: #ffffff;
+    color: #f71905;
+    font-size: 18pt;
+    font-weight: 800;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 16px;
+}
+QLabel#hydrogenUseValue {
+    background-color: #ffffff;
+    color: #053ef7;
+    font-size: 18pt;
+    font-weight: 800;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 16px;
+}
+
+/* =========================================================
+   BUTONLAR
+   ========================================================= */
+
 QPushButton {
     background-color: #ffffff;
     color: #1e293b;
     border: 1px solid #cbd5e1;
     border-radius: 12px;
-    font-size: 11pt;
+    font-size: 12pt;
     font-weight: 700;
-    padding: 6px 10px;
+    padding: 6px 12px;
 }
 
 QPushButton:hover {
@@ -94,6 +166,46 @@ QPushButton:pressed {
     background-color: #2563eb;
     color: #ffffff;
     border: none;
+}
+
+/* 0 ve 100 Hızlı Uç Değer Butonları (Net Buton Görünümü) */
+QPushButton#sliderZeroValueButton,
+QPushButton#sliderHunderedValueButton {
+    background-color: #ffffff;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    border-radius: 12px;
+    font-size: 14pt;
+    font-weight: 800;
+}
+
+QPushButton#sliderZeroValueButton:hover,
+QPushButton#sliderHunderedValueButton:hover {
+    background-color: #eff6ff;
+}
+
+QPushButton#sliderZeroValueButton:pressed,
+QPushButton#sliderHunderedValueButton:pressed {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+/* Azalt (-5) ve Arttır (+5) Butonları */
+QPushButton#sliderDecreaseButton,
+QPushButton#sliderIncreaseButton {
+    background-color: #ffffff;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    font-size: 12pt;
+    font-weight: 700;
+}
+
+QPushButton#sliderDecreaseButton:pressed,
+QPushButton#sliderIncreaseButton:pressed {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
 }
 
 /* Settings Butonu */
