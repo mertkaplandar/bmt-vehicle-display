@@ -2,17 +2,14 @@ import sys
 import os
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, 
-    QStackedWidget, QLabel, QGraphicsOpacityEffect
-)
+    QStackedWidget, QLabel, QGraphicsOpacityEffect)
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import (
     QFile, QTimer, Qt, QPropertyAnimation, 
-    QSequentialAnimationGroup, QEasingCurve
-)
+    QSequentialAnimationGroup, QEasingCurve)
 from PySide6.QtGui import QShortcut, QKeySequence, QPixmap, QColor, QPainter
 
-from GaugeBars import CircularGauge, VerticalFuelBar
-
+from GaugeBars import SpeedCircularGauge, RpmCircularGauge, VerticalFuelBar, DotMatrixShifter
 
 class SplashOverlay(QWidget):
     """Açılışta tüm ekranı kaplayan, logo ve yazıyı birlikte gösteren animasyon katmanı"""
@@ -137,13 +134,24 @@ class VehicleDashboard:
             if settings_btn := self.window.findChild(QPushButton, "settingsButton"):
                 settings_btn.clicked.connect(lambda: sw.setCurrentIndex(1))
 
-        container = self.window.findChild(QWidget, "gaugeContainer")
+            if exitButton := self.window.findChild(QPushButton, "exitButton"):
+                exitButton.clicked.connect(self.window.close)
+
+        container = self.window.findChild(QWidget, "speedGaugeContainer")
         if container:
             if container.layout() is None:
                 layout = QVBoxLayout(container)
                 layout.setContentsMargins(0, 0, 0, 0)
-            self.speed_gauge = CircularGauge(container)
+            self.speed_gauge = SpeedCircularGauge(container)
             container.layout().addWidget(self.speed_gauge)
+
+        rpm_container = self.window.findChild(QWidget, "rpmGaugeContainer")
+        if rpm_container:
+            if rpm_container.layout() is None:
+                layout = QVBoxLayout(rpm_container)
+                layout.setContentsMargins(0, 0, 0, 0)
+            self.rpm_gauge = RpmCircularGauge(rpm_container)
+            rpm_container.layout().addWidget(self.rpm_gauge)
 
         fuel_container = self.window.findChild(QWidget, "fuelContainer")
         if fuel_container:
@@ -152,6 +160,14 @@ class VehicleDashboard:
                 layout.setContentsMargins(0, 0, 0, 0)
             self.fuel_bar = VerticalFuelBar(fuel_container)
             fuel_container.layout().addWidget(self.fuel_bar)
+
+        shifter_container = self.window.findChild(QWidget, "shifterContainer")
+        if shifter_container:
+            if shifter_container.layout() is None:
+                layout = QVBoxLayout(shifter_container)
+                layout.setContentsMargins(0, 0, 0, 0)
+            self.shifter = DotMatrixShifter(shifter_container)
+            shifter_container.layout().addWidget(self.shifter)
 
     def init_event_loop_timer(self):
         """Qt Main Loop üzerinde çalışan periyodik timer"""
@@ -165,9 +181,15 @@ class VehicleDashboard:
         if hasattr(self, 'speed_gauge'):
             self.speed_gauge.set_value(53)
 
+        if hasattr(self, 'rpm_gauge'):
+            self.rpm_gauge.set_value(5353)
+
         if hasattr(self, 'fuel_bar'):
             self.fuel_bar.set_value(53)
-            self.fuel_bar.set_voltage(48)
+            self.fuel_bar.set_voltage(53)
+
+        if hasattr(self, 'shifter'):
+            self.shifter.set_gear("D")
 
     def init_shortcuts(self):
         """Test aşamasında Esc tuşuna basıldığında programın kapanmasını sağlar"""
@@ -179,6 +201,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # debugmode=True yaparsanız logo animasyonu atlanır ve doğrudan ekran açılır
-    dashboard = VehicleDashboard(debugmode=True)
+    dashboard = VehicleDashboard(debugmode=False)
 
     sys.exit(app.exec())
