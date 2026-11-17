@@ -14,6 +14,7 @@ QStackedWidget#stackedWidget {
 }
 
 /* Üst Başlık ("BMT MACH") */
+QLabel#settingsHeaderLabel,
 QLabel#headerText {
     background-color: transparent;
     color: #0f172a;
@@ -56,7 +57,7 @@ QLabel#chargePowerText,
 QLabel#insulationResText {
     background-color: transparent;
     color: #64748b;
-    font-size: 10pt;
+    font-size: 18pt;
     font-weight: 700;
     border: none;
 }
@@ -68,7 +69,7 @@ QLabel#chargePowerValue,
 QLabel#insulationResValue {
     background-color: #f8fafc;
     color: #0f172a;
-    font-size: 19pt;
+    font-size: 22pt;
     font-weight: 800;
     border: none;
     border-radius: 12px;
@@ -114,6 +115,7 @@ QSlider#currenUsingRatioSlider::handle:horizontal:pressed {
 
 /* Ayarlar Sayfası Etiketleri ("Batarya:", "Hidrojen:") */
 QLabel#batteryText,
+QLabel#batteryHydrogenRatioText,
 QLabel#hydrogenText {
     background-color: #f8fafc;
     color: #475569;

@@ -11,7 +11,7 @@ class SpeedCircularGauge(QWidget):
 
     def set_value(self, val):
         self.value = max(0, min(val, self.max_value))
-        self.update()  # Kadranı yeniden çiz
+        self.update() 
 
     def paintEvent(self, event):
         painter = QPainter(self)

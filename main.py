@@ -14,7 +14,7 @@ from SerialTelemetryManger import SerialTelemetryManager
 
 class SplashOverlay(QWidget):
     """Açılışta tüm ekranı kaplayan, logo ve yazıyı birlikte gösteren animasyon katmanı"""
-    def __init__(self, parent, logo_path="assets/logo.png"):
+    def __init__(self, parent, logo_path="assets/logo-no-background.png"):
         super().__init__(parent)
         self.setGeometry(0, 0, parent.width(), parent.height())
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -37,7 +37,7 @@ class SplashOverlay(QWidget):
         self.title_label = QLabel("BMT MACH - Hidromobil", self)
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setStyleSheet(
-            "font-size: 28px; font-weight: bold; color: #212529; background: transparent;"
+            "font-size: 32px; font-weight: bold; color: #212529; background: transparent;"
         )
         layout.addWidget(self.title_label)
 
@@ -336,7 +336,7 @@ class VehicleDashboard:
         self.window.batteryCurrentValue.setText(f"{data['battery_current']:.1f} A")
         self.window.batteryTemperatureValue.setText(f"{data['battery_temp']:.1f} °C")
         self.window.chargePowerValue.setText(f"{data['charge_power']:.1f} W")
-        self.window.insulationResValue.setText(f"{data['insulation_res']:.0f} kΩ")
+        self.window.insulationResValue.setText(f"{data['insulation_res']:.0f} Ω")
 
     # Örnek Veri Gönderimi:
     # self.uart.send_packet(65.0, 54.2, 18.5, 34.0, 0.0, 500.0, 1)

@@ -75,7 +75,7 @@
         <property name="geometry">
          <rect>
           <x>450</x>
-          <y>140</y>
+          <y>130</y>
           <width>100</width>
           <height>100</height>
          </rect>
@@ -126,8 +126,20 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>83</height>
+              </size>
+             </property>
              <property name="text">
-              <string>TextLabel</string>
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap>assets/icons/current.svg</pixmap>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -158,16 +170,6 @@
          </item>
          <item row="0" column="1">
           <layout class="QGridLayout" name="batteryTemperatureGrid">
-           <item row="1" column="0" colspan="2">
-            <widget class="QLabel" name="batteryTemperatureValue">
-             <property name="text">
-              <string>batteryTemperature</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="1">
             <widget class="QLabel" name="batteryTemperatureText">
              <property name="text">
@@ -192,8 +194,36 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>80</width>
+               <height>83</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>83</height>
+              </size>
+             </property>
              <property name="text">
-              <string>TextLabel</string>
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap>assets/icons/thermostat.svg</pixmap>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QLabel" name="batteryTemperatureValue">
+             <property name="text">
+              <string>batteryTemperature</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -201,16 +231,16 @@
          </item>
          <item row="1" column="0">
           <layout class="QGridLayout" name="chargePowerGrid">
-           <item row="0" column="0">
-            <widget class="QLabel" name="chargePowerImage">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
+           <item row="0" column="1">
+            <widget class="QLabel" name="chargePowerText">
              <property name="text">
-              <string>TextLabel</string>
+              <string>Şarj Gücü:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -230,15 +260,33 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="chargePowerText">
+           <item row="0" column="0">
+            <widget class="QLabel" name="chargePowerImage">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>80</width>
+               <height>83</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>83</height>
+              </size>
+             </property>
              <property name="text">
-              <string>Şarj Gücü:</string>
+              <string/>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
+             <property name="pixmap">
+              <pixmap>assets/icons/power.svg</pixmap>
              </property>
-             <property name="wordWrap">
+             <property name="scaledContents">
               <bool>true</bool>
              </property>
             </widget>
@@ -255,8 +303,20 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>83</height>
+              </size>
+             </property>
              <property name="text">
-              <string>TextLabel</string>
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap>assets/icons/resistor.svg</pixmap>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -290,9 +350,9 @@
        <widget class="QLabel" name="lbl_com_status">
         <property name="geometry">
          <rect>
-          <x>0</x>
+          <x>10</x>
           <y>510</y>
-          <width>221</width>
+          <width>321</width>
           <height>41</height>
          </rect>
         </property>
@@ -378,7 +438,7 @@
         <property name="geometry">
          <rect>
           <x>300</x>
-          <y>160</y>
+          <y>180</y>
           <width>401</width>
           <height>51</height>
          </rect>
@@ -405,7 +465,7 @@
         <property name="geometry">
          <rect>
           <x>160</x>
-          <y>160</y>
+          <y>180</y>
           <width>130</width>
           <height>65</height>
          </rect>
@@ -418,7 +478,7 @@
         <property name="geometry">
          <rect>
           <x>710</x>
-          <y>160</y>
+          <y>180</y>
           <width>130</width>
           <height>65</height>
          </rect>
@@ -431,7 +491,7 @@
         <property name="geometry">
          <rect>
           <x>320</x>
-          <y>250</y>
+          <y>270</y>
           <width>130</width>
           <height>65</height>
          </rect>
@@ -444,7 +504,7 @@
         <property name="geometry">
          <rect>
           <x>560</x>
-          <y>250</y>
+          <y>270</y>
           <width>130</width>
           <height>65</height>
          </rect>
@@ -457,7 +517,7 @@
         <property name="geometry">
          <rect>
           <x>320</x>
-          <y>350</y>
+          <y>370</y>
           <width>371</width>
           <height>121</height>
          </rect>
@@ -524,7 +584,7 @@
          <item row="1" column="1">
           <widget class="QLabel" name="hydrogenUseValue">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -546,13 +606,56 @@
         <property name="geometry">
          <rect>
           <x>870</x>
-          <y>480</y>
+          <y>490</y>
           <width>130</width>
           <height>65</height>
          </rect>
         </property>
         <property name="text">
          <string>OK</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="settingsHeaderLabel">
+        <property name="geometry">
+         <rect>
+          <x>340</x>
+          <y>0</y>
+          <width>321</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>30</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Araç Ayarları</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="batteryHydrogenRatioText">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>120</y>
+          <width>681</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>15</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Batarya/Hidrojen Kullanım Oranı</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </widget>
