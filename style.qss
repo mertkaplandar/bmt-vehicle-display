@@ -57,7 +57,7 @@ QLabel#chargePowerText,
 QLabel#insulationResText {
     background-color: transparent;
     color: #64748b;
-    font-size: 18pt;
+    font-size: 15pt;
     font-weight: 700;
     border: none;
 }

@@ -352,7 +352,7 @@
          <rect>
           <x>10</x>
           <y>510</y>
-          <width>321</width>
+          <width>301</width>
           <height>41</height>
          </rect>
         </property>
@@ -612,7 +612,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>OK</string>
+         <string>Gönder</string>
         </property>
        </widget>
        <widget class="QLabel" name="settingsHeaderLabel">

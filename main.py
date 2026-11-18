@@ -7,7 +7,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import (
     QFile, QTimer, Qt, QPropertyAnimation, 
     QSequentialAnimationGroup, QEasingCurve)
-from PySide6.QtGui import QShortcut, QKeySequence, QPixmap, QColor, QPainter
+from PySide6.QtGui import QShortcut, QKeySequence, QPixmap, QColor, QPainter, QIcon
 
 from GaugeBars import SpeedCircularGauge, RpmCircularGauge, VerticalFuelBar, DotMatrixShifter
 from SerialTelemetryManger import SerialTelemetryManager
@@ -90,6 +90,12 @@ class VehicleDashboard:
         self.init_event_loop_timer()         # 4. Qt Event Loop üzerinde çalışacak timer
         self.init_shortcuts()                # 5. Esc tuşu ile güvenli çıkış kısayolu
 
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(base_dir, "assets", "logo.png")  # Logo dosyanızın yolu (.png veya .ico)
+
+        app_icon = QIcon(icon_path)
+        self.window.setWindowIcon(app_icon)
+
         # --- GÖMÜLÜ SİSTEM / QT TEMEL AYARLARI ---
         self.window.setFixedSize(1024, 600)
         self.window.show()
@@ -101,11 +107,11 @@ class VehicleDashboard:
             self.splash.show()
             self.splash.raise_()
 
-        self.lbl_com_status = self.window.findChild(QLabel, "lbl_com_status")
-        if self.lbl_com_status:
-            self.lbl_com_status.setText("● COM Port: Bağlanıyor...")
+        self.connectionStatus = self.window.findChild(QLabel, "connectionStatus")
+        if self.connectionStatus:
+            self.connectionStatus.setText("● COM Port: Bağlanıyor...")
 
-        self.uart = SerialTelemetryManager(port="COM3", baudrate=9600, header="<", footer=">")
+        self.uart = SerialTelemetryManager(port="COM3", baudrate=115200, header="<", footer=">")
         self.uart.telemetry_received.connect(self.update_dashboard_telemetry)
         self.uart.connection_status.connect(self.on_serial_status_changed)
         self.uart.connection_status.connect(lambda ok, msg: self.window.statusbar.showMessage(msg))
@@ -304,8 +310,8 @@ class VehicleDashboard:
         """UART üzerinden gelen verileri UI bileşenlerine aktarır ve batarya hesaplamalarını yapar"""
         
         # --- BATARYA PAKETİ SABİTLERİ (Kendi batarya paketinize göre düzenleyin) ---
-        MIN_VOLTAGE = 42.0       # %0 şarj voltajı (Örn: 14S Li-ion için 14 * 3.0V = 42.0V)
-        MAX_VOLTAGE = 58.8       # %100 şarj voltajı (Örn: 14S Li-ion için 14 * 4.2V = 58.8V)
+        MIN_VOLTAGE = 55       # %0 şarj voltajı (Örn: 14S Li-ion için 14 * 3.0V = 42.0V)
+        MAX_VOLTAGE = 84      # %100 şarj voltajı (Örn: 14S Li-ion için 14 * 4.2V = 58.8V)
         TOTAL_CAPACITY_WH = 2500 # Bataryanın tam dolu toplam kapasitesi (Wh)
         # -------------------------------------------------------------------------
 
@@ -343,7 +349,7 @@ class VehicleDashboard:
 
     def on_serial_status_changed(self, is_connected: bool, message: str):
             """COM port bağlantı durumuna göre settingsPage altındaki label'ı ve statusbar'ı günceller"""
-            lbl_status = getattr(self, "lbl_com_status", None)
+            lbl_status = getattr(self, "connectionStatus", None)
 
             if lbl_status:
                 if is_connected:
