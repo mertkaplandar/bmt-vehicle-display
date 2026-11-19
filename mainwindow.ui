@@ -30,7 +30,7 @@
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="mainPage">
        <widget class="QWidget" name="speedGaugeContainer" native="true">
@@ -347,7 +347,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QLabel" name="lbl_com_status">
+       <widget class="QLabel" name="connectionStatus">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -415,8 +415,8 @@
          <rect>
           <x>10</x>
           <y>10</y>
-          <width>70</width>
-          <height>40</height>
+          <width>90</width>
+          <height>45</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -434,7 +434,7 @@
          <string>Çıkış</string>
         </property>
        </widget>
-       <widget class="QSlider" name="currenUsingRatioSlider">
+       <widget class="QSlider" name="currentUsingRatioSlider">
         <property name="geometry">
          <rect>
           <x>300</x>
@@ -455,7 +455,7 @@
          <number>1</number>
         </property>
         <property name="value">
-         <number>50</number>
+         <number>90</number>
         </property>
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
@@ -618,9 +618,9 @@
        <widget class="QLabel" name="settingsHeaderLabel">
         <property name="geometry">
          <rect>
-          <x>340</x>
+          <x>300</x>
           <y>0</y>
-          <width>321</width>
+          <width>401</width>
           <height>71</height>
          </rect>
         </property>

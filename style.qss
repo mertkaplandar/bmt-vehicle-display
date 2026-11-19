@@ -81,25 +81,25 @@ QLabel#insulationResValue {
    ========================================================= */
 
 /* Dokunmatik Ekran İçin Kalınlaştırılmış Modern Slider */
-QSlider#currenUsingRatioSlider::groove:horizontal {
+QSlider#currentUsingRatioSlider::groove:horizontal {
     background: #cbd5e1;
     height: 14px;
     border-radius: 7px;
 }
 
-QSlider#currenUsingRatioSlider::sub-page:horizontal {
+QSlider#currentUsingRatioSlider::sub-page:horizontal {
     background: #2563eb;
     height: 14px;
     border-radius: 7px;
 }
 
-QSlider#currenUsingRatioSlider::add-page:horizontal {
+QSlider#currentUsingRatioSlider::add-page:horizontal {
     background: #cbd5e1;
     height: 14px;
     border-radius: 7px;
 }
 
-QSlider#currenUsingRatioSlider::handle:horizontal {
+QSlider#currentUsingRatioSlider::handle:horizontal {
     background: #ffffff;
     border: 4px solid #2563eb;
     width: 28px;
@@ -108,7 +108,7 @@ QSlider#currenUsingRatioSlider::handle:horizontal {
     border-radius: 18px;
 }
 
-QSlider#currenUsingRatioSlider::handle:horizontal:pressed {
+QSlider#currentUsingRatioSlider::handle:horizontal:pressed {
     background: #2563eb;
     border-color: #1d4ed8;
 }
@@ -242,6 +242,16 @@ QPushButton#exitButton {
 
 QPushButton#exitButton:pressed {
     background-color: #dc2626;
+    color: #ffffff;
+}
+
+QPushButton#okButton {
+    background-color: #38cf6f;
+    color: #ffffff;
+}
+
+QPushButton#okButton:pressed {
+    background-color: #2563eb;
     color: #ffffff;
 }
 

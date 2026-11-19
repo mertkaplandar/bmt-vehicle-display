@@ -1,113 +1,56 @@
 import sys
 import os
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton, 
+    QApplication, QWidget, QVBoxLayout, QPushButton,
     QStackedWidget, QLabel, QGraphicsOpacityEffect, QSlider)
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import (
-    QFile, QTimer, Qt, QPropertyAnimation, 
+    QFile, QTimer, Qt, QPropertyAnimation,
     QSequentialAnimationGroup, QEasingCurve)
 from PySide6.QtGui import QShortcut, QKeySequence, QPixmap, QColor, QPainter, QIcon
 
 from GaugeBars import SpeedCircularGauge, RpmCircularGauge, VerticalFuelBar, DotMatrixShifter
 from SerialTelemetryManger import SerialTelemetryManager
 
-class SplashOverlay(QWidget):
-    """Açılışta tüm ekranı kaplayan, logo ve yazıyı birlikte gösteren animasyon katmanı"""
-    def __init__(self, parent, logo_path="assets/logo-no-background.png"):
-        super().__init__(parent)
-        self.setGeometry(0, 0, parent.width(), parent.height())
-        self.setAttribute(Qt.WA_DeleteOnClose)
-
-        layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignCenter)
-        layout.setSpacing(30)  # Logo ile yazı arasındaki dikey boşluk
-
-        # 1. Logo Görseli (Varsa gösterilir)
-        if os.path.exists(logo_path):
-            self.logo_label = QLabel(self)
-            self.logo_label.setAlignment(Qt.AlignCenter)
-            self.logo_label.setStyleSheet("background: transparent;")
-            pixmap = QPixmap(logo_path)
-            scaled = pixmap.scaled(420, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            self.logo_label.setPixmap(scaled)
-            layout.addWidget(self.logo_label)
-
-        # 2. Başlık Yazısı (Her durumda logonun altında görünür)
-        self.title_label = QLabel("BMT MACH - Hidromobil", self)
-        self.title_label.setAlignment(Qt.AlignCenter)
-        self.title_label.setStyleSheet(
-            "font-size: 32px; font-weight: bold; color: #212529; background: transparent;"
-        )
-        layout.addWidget(self.title_label)
-
-        # Opaklık efektini tüm katmana uygula
-        self.opacity_effect = QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self.opacity_effect)
-        self.opacity_effect.setOpacity(1.0)
-
-        self.start_animation()
-
-    def paintEvent(self, event):
-        """Arka planı tamamen opak boyar, arkadaki ekranı gizler"""
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#f8f9fa"))
-
-    def start_animation(self):
-        # 1. Logo ve yazı sabit durur (1000ms)
-        self.hold = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.hold.setDuration(1000)
-        self.hold.setStartValue(1.0)
-        self.hold.setEndValue(1.0)
-
-        # 2. Tüm beyaz perde, logo ve yazı birlikte eriyerek ana ekranı açar (800ms)
-        self.fade_out = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.fade_out.setDuration(800)
-        self.fade_out.setStartValue(1.0)
-        self.fade_out.setEndValue(0.0)
-        self.fade_out.setEasingCurve(QEasingCurve.InOutCubic)
-
-        self.anim_group = QSequentialAnimationGroup(self)
-        self.anim_group.addAnimation(self.hold)
-        self.anim_group.addAnimation(self.fade_out)
-
-        self.anim_group.finished.connect(self.close)
-        self.anim_group.start()
-
 
 class VehicleDashboard:
+    """BMT MACH Araç Gösterge Paneli Ana Kontrol Sınıfı"""
+
+    # =========================================================================
+    # 1. BAŞLATMA, UI VE STİL YÜKLEME METOTLARI
+    # =========================================================================
     def __init__(self, ui_path="mainwindow.ui", qss_path="style.qss", debugmode=False):
         self.debugmode = debugmode
         self.battery_pct = 0
-        self.hydrrogecn_pct = 0
+        self.hydrogen_pct = 100
 
-        self.load_stylesheet(qss_path)       # 1. Stil dosyasını (QSS) global olarak uygula
-        self.window = self.load_ui(ui_path)  # 2. UI dosyasını doğrudan ana pencere olarak yükle
+        # Arayüz ve stil yüklemeleri
+        self.load_stylesheet(qss_path)
+        self.window = self.load_ui(ui_path)
 
-        self.setup_settings_controls()  # Settings sayfası slider ve buton bağlantıları
+        # Bileşen ve sinyal bağlantıları
+        self.init_connections()
+        self.setup_settings_controls()
+        self.init_event_loop_timer()
+        self.init_shortcuts()
 
-        self.init_connections()              # 3. Sinyal ve slot bağlantıları
-        self.init_event_loop_timer()         # 4. Qt Event Loop üzerinde çalışacak timer
-        self.init_shortcuts()                # 5. Esc tuşu ile güvenli çıkış kısayolu
-
+        # Pencere ikonu ve boyut ayarları
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_path = os.path.join(base_dir, "assets", "logo.png")  # Logo dosyanızın yolu (.png veya .ico)
+        icon_path = os.path.join(base_dir, "assets", "logo.png")
+        self.window.setWindowIcon(QIcon(icon_path))
 
-        app_icon = QIcon(icon_path)
-        self.window.setWindowIcon(app_icon)
-
-        # --- GÖMÜLÜ SİSTEM / QT TEMEL AYARLARI ---
         self.window.setFixedSize(1024, 600)
         self.window.show()
         # self.window.setCursor(Qt.BlankCursor)
 
-        # debugmode False ise açılış logosu animasyonunu başlat
+        # Açılış ekranı (Splash)
         if not self.debugmode:
-            self.splash = SplashOverlay(self.window, logo_path="assets/logo.png")
+            self.splash = SplashOverlay(self.window, logo_path="assets/logo-no-background.png")
             self.splash.show()
             self.splash.raise_()
 
-        self.connectionStatus = self.window.findChild(QLabel, "connectionStatus")
+        # UART seri haberleşme başlatma
+        self.connectionStatus = self.window.findChild(QLabel, "lbl_com_status")
         if self.connectionStatus:
             self.connectionStatus.setText("● COM Port: Bağlanıyor...")
 
@@ -118,6 +61,7 @@ class VehicleDashboard:
         self.uart.start()
 
     def load_stylesheet(self, qss_path):
+        """QSS stil dosyasını okur ve tüm uygulamaya uygular"""
         file = QFile(qss_path)
         if file.open(QFile.ReadOnly | QFile.Text):
             stylesheet = str(file.readAll(), encoding="utf-8")
@@ -129,6 +73,7 @@ class VehicleDashboard:
             print(f"Uyarı: '{qss_path}' bulunamadı!")
 
     def load_ui(self, ui_path):
+        """Qt Designer (.ui) dosyasını yükleyip ana pencere nesnesini döndürür"""
         file = QFile(ui_path)
         if not file.open(QFile.ReadOnly):
             print(f"Hata: '{ui_path}' dosyası açılamadı!")
@@ -145,8 +90,11 @@ class VehicleDashboard:
         window.setWindowTitle("BMT MACH - Hidromobil")
         return window
 
+    # =========================================================================
+    # 2. SAYFA GEÇİŞLERİ, ÖZEL GÖSTERGE YERLEŞİMİ VE KISAYOL METOTLARI
+    # =========================================================================
     def init_connections(self):
-        """Butonlar, QStackedWidget vb. elemanların bağlantıları"""
+        """Sayfa geçiş butonlarını bağlar ve özel QPainter göstergelerini yerleştirir"""
         sw = self.window.findChild(QStackedWidget, "stackedWidget")
         if sw:
             sw.setCurrentIndex(0)
@@ -154,10 +102,10 @@ class VehicleDashboard:
                 main_btn.clicked.connect(lambda: sw.setCurrentIndex(0))
             if settings_btn := self.window.findChild(QPushButton, "settingsButton"):
                 settings_btn.clicked.connect(lambda: sw.setCurrentIndex(1))
+            if exit_btn := self.window.findChild(QPushButton, "exitButton"):
+                exit_btn.clicked.connect(self.close_application)
 
-            if exitButton := self.window.findChild(QPushButton, "exitButton"):
-                exitButton.clicked.connect(self.window.close)
-
+        # Hız Kadranı
         container = self.window.findChild(QWidget, "speedGaugeContainer")
         if container:
             if container.layout() is None:
@@ -166,6 +114,7 @@ class VehicleDashboard:
             self.speed_gauge = SpeedCircularGauge(container)
             container.layout().addWidget(self.speed_gauge)
 
+        # RPM Kadranı (UI'da mevcutsa)
         rpm_container = self.window.findChild(QWidget, "rpmGaugeContainer")
         if rpm_container:
             if rpm_container.layout() is None:
@@ -174,6 +123,7 @@ class VehicleDashboard:
             self.rpm_gauge = RpmCircularGauge(rpm_container)
             rpm_container.layout().addWidget(self.rpm_gauge)
 
+        # Dikey Batarya Barı
         fuel_container = self.window.findChild(QWidget, "fuelContainer")
         if fuel_container:
             if fuel_container.layout() is None:
@@ -182,6 +132,7 @@ class VehicleDashboard:
             self.fuel_bar = VerticalFuelBar(fuel_container)
             fuel_container.layout().addWidget(self.fuel_bar)
 
+        # Dot-Matrix Vites Göstergesi
         shifter_container = self.window.findChild(QWidget, "shifterContainer")
         if shifter_container:
             if shifter_container.layout() is None:
@@ -190,53 +141,39 @@ class VehicleDashboard:
             self.shifter = DotMatrixShifter(shifter_container)
             shifter_container.layout().addWidget(self.shifter)
 
+    def init_shortcuts(self):
+        """Test aşamasında Esc tuşu ile güvenli çıkış kısayolunu tanımlar"""
+        self.escape_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self.window)
+        self.escape_shortcut.activated.connect(self.close_application)
+
+    def close_application(self):
+        """Seri portu güvenli şekilde kapatır ve uygulamadan çıkar"""
+        if hasattr(self, "uart") and self.uart:
+            self.uart.stop()
+        self.window.close()
+
+    # =========================================================================
+    # 3. PERİYODİK DÖNGÜ VE DEBUG SİMÜLASYON METOTLARI
+    # =========================================================================
     def init_event_loop_timer(self):
-        """Qt Main Loop üzerinde çalışan periyodik timer"""
+        """Qt Main Loop üzerinde çalışan 100 ms periyotlu zamanlayıcıyı başlatır"""
         self.update_timer = QTimer(self.window)
         self.update_timer.timeout.connect(self.main_loop_update)
         self.update_timer.start(100)  # 100 ms (10 FPS)
 
     def main_loop_update(self):
-        """Araç verilerinin güncelleneceği ana döngü fonksiyonu"""
+        """Debug modu aktifken göstergelere sabit test değerleri basar"""
+        pass
 
-        if self.debugmode:
-            if hasattr(self, 'speed_gauge'):
-                self.speed_gauge.set_value(53)
-
-            if hasattr(self, 'rpm_gauge'):
-                self.rpm_gauge.set_value(5353)
-
-            if hasattr(self, 'fuel_bar'):
-                self.fuel_bar.set_value(53)
-                self.fuel_bar.set_energy(1420)
-                self.fuel_bar.set_voltage(53)
-
-            if hasattr(self, 'shifter'):
-                self.shifter.set_gear("D")
-
-    def init_shortcuts(self):
-        """Test aşamasında Esc tuşuna basıldığında programın kapanmasını sağlar"""
-        self.escape_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self.window)
-        self.escape_shortcut.activated.connect(self.window.close)
-
-    def setup_navigation(self):
-        # Diğer sayfa geçişleri...
-        self.btn_exit = self.window.findChild(QPushButton, "exitButton")
-        if self.btn_exit:
-            self.btn_exit.clicked.connect(self.close_application)
-
-    def close_application(self):
-        """Seri portu kapatır ve uygulamadan çıkar"""
-        if hasattr(self, "uart") and self.uart:
-            self.uart.stop()
-        self.window.close()
-
+    # =========================================================================
+    # 4. AYARLAR SAYFASI (BATARYA / HİDROJEN ORANI) KONTROL METOTLARI
+    # =========================================================================
     def setup_settings_controls(self):
-        """Settings sayfasındaki slider, oran etiketleri ve okButton bağlantıları"""
+        """Settings sayfasındaki slider, artırma/azaltma ve onay butonlarını bağlar"""
         self.battery_pct = 0
         self.hydrogen_pct = 100
 
-        self.ratio_slider = self.window.findChild(QSlider, "currenUsingRatioSlider")
+        self.ratio_slider = self.window.findChild(QSlider, "currentUsingRatioSlider")
         self.btn_decrease = self.window.findChild(QPushButton, "sliderDecreaseButton")
         self.btn_increase = self.window.findChild(QPushButton, "sliderIncreaseButton")
         self.btn_zero = self.window.findChild(QPushButton, "sliderZeroValueButton")
@@ -253,33 +190,33 @@ class VehicleDashboard:
 
         if self.btn_decrease:
             self.btn_decrease.clicked.connect(lambda: self.adjust_ratio_slider(-5))
-
         if self.btn_increase:
             self.btn_increase.clicked.connect(lambda: self.adjust_ratio_slider(5))
-
         if self.btn_zero:
             self.btn_zero.clicked.connect(lambda: self.ratio_slider.setValue(0))
-
         if self.btn_hundred:
             self.btn_hundred.clicked.connect(lambda: self.ratio_slider.setValue(100))
-
-        # Sadece okButton'a basıldığında UART üzerinden gönder
         if self.btn_ok:
             self.btn_ok.clicked.connect(self.send_ratio_settings)
 
+    def adjust_ratio_slider(self, delta):
+        """Slider değerini verilen miktar kadar (+5 / -5) değiştirir"""
+        if self.ratio_slider:
+            new_val = max(0, min(100, self.ratio_slider.value() + delta))
+            self.ratio_slider.setValue(new_val)
+
     def on_ratio_slider_changed(self, value):
-        """Slider değiştikçe sınıf değişkenlerini ve etiketleri günceller (Henüz göndermez)"""
+        """Slider değiştikçe Batarya ve Hidrojen etiketlerini günceller (Henüz göndermez)"""
         self.battery_pct = int(value)
         self.hydrogen_pct = 100 - self.battery_pct
 
         if self.lbl_battery_use:
             self.lbl_battery_use.setText(f"%{self.battery_pct}")
-
         if self.lbl_hydrogen_use:
             self.lbl_hydrogen_use.setText(f"%{self.hydrogen_pct}")
 
     def send_ratio_settings(self):
-        """okButton'a basıldığında güncel oranları UART üzerinden gönderir"""
+        """Gönder (okButton) butonuna basıldığında oranları UART üzerinden iletir"""
         if hasattr(self, "uart") and self.uart:
             sent = self.uart.send_power_ratio(self.battery_pct, self.hydrogen_pct)
             if sent:
@@ -289,44 +226,23 @@ class VehicleDashboard:
             else:
                 self.window.statusbar.showMessage("Hata: Seri port bağlı değil!", 3000)
 
-    def adjust_ratio_slider(self, delta):
-        """Slider değerini verilen miktar kadar (+5 / -5) değiştirir"""
-        if self.ratio_slider:
-            new_val = max(0, min(100, self.ratio_slider.value() + delta))
-            self.ratio_slider.setValue(new_val)
-
-    def on_ratio_slider_changed(self, value):
-        """Slider değiştikçe Batarya ve Hidrojen kullanım yüzdelerini günceller"""
-        self.battery_pct = int(value)
-        self.hydrogen_pct = 100 - self.battery_pct
-
-        if self.lbl_battery_use:
-            self.lbl_battery_use.setText(f"%{self.battery_pct}")
-
-        if self.lbl_hydrogen_use:
-            self.lbl_hydrogen_use.setText(f"%{self.hydrogen_pct}")
-
+    # =========================================================================
+    # 5. UART TELEMETRİ VERİ İŞLEME VE BAĞLANTI DURUMU METOTLARI
+    # =========================================================================
     def update_dashboard_telemetry(self, data: dict):
-        """UART üzerinden gelen verileri UI bileşenlerine aktarır ve batarya hesaplamalarını yapar"""
-        
-        # --- BATARYA PAKETİ SABİTLERİ (Kendi batarya paketinize göre düzenleyin) ---
-        MIN_VOLTAGE = 55       # %0 şarj voltajı (Örn: 14S Li-ion için 14 * 3.0V = 42.0V)
-        MAX_VOLTAGE = 84      # %100 şarj voltajı (Örn: 14S Li-ion için 14 * 4.2V = 58.8V)
-        TOTAL_CAPACITY_WH = 2500 # Bataryanın tam dolu toplam kapasitesi (Wh)
-        # -------------------------------------------------------------------------
+        """UART'tan gelen telemetri verilerini hesaplar ve tüm göstergelere yazar"""
+        MIN_VOLTAGE = 55         # %0 şarj voltajı (V)
+        MAX_VOLTAGE = 84         # %100 şarj voltajı (V)
+        TOTAL_CAPACITY_WH = 2500 # Batarya toplam kapasitesi (Wh)
 
         # 1. Hız Kadranı
         if hasattr(self, "speed_gauge"):
             self.speed_gauge.set_value(data["speed"])
 
-        # 2. Batarya Voltajı, Yüzdesi ve Kalan Enerji (Wh) Hesabı
+        # 2. Batarya Voltajı, SoC Yüzdesi ve Kalan Enerji (Wh)
         voltage = data["battery_voltage"]
-        
-        # Voltajı 0 - 100 aralığında yüzdeye oranla ve sınırla (clamp)
         soc_percent = ((voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE)) * 100.0
         soc_percent = max(0.0, min(100.0, soc_percent))
-
-        # Kalan enerji (Wh) hesabı
         remaining_wh = (soc_percent / 100.0) * TOTAL_CAPACITY_WH
 
         if hasattr(self, "fuel_bar"):
@@ -338,40 +254,103 @@ class VehicleDashboard:
             gear_str = gear_map.get(data["gear"], str(data["gear"]))
             self.shifter.set_gear(gear_str)
 
-        # 4. Sağ Telemetri Kartı Etiketleri
+        # 4. Sağ Telemetri Kartı Değerleri
         self.window.batteryCurrentValue.setText(f"{data['battery_current']:.1f} A")
         self.window.batteryTemperatureValue.setText(f"{data['battery_temp']:.1f} °C")
         self.window.chargePowerValue.setText(f"{data['charge_power']:.1f} W")
         self.window.insulationResValue.setText(f"{data['insulation_res']:.0f} Ω")
 
-    # Örnek Veri Gönderimi:
-    # self.uart.send_packet(65.0, 54.2, 18.5, 34.0, 0.0, 500.0, 1)
-
     def on_serial_status_changed(self, is_connected: bool, message: str):
-            """COM port bağlantı durumuna göre settingsPage altındaki label'ı ve statusbar'ı günceller"""
-            lbl_status = getattr(self, "connectionStatus", None)
+        """UART bağlantı durumuna göre durum etiketini ve alt çubuğu günceller"""
+        lbl_status = getattr(self, "connectionStatus", None)
 
-            if lbl_status:
-                if is_connected:
-                    lbl_status.setText(f"● BAĞLI ({message})")
-                    lbl_status.setStyleSheet(
-                        "background-color: #dcfce7; color: #15803d; font-size: 11pt; "
-                        "font-weight: 700; border-radius: 10px; padding: 6px 12px;"
-                    )
-                else:
-                    lbl_status.setText(f"● BAĞLI DEĞİL ({message})")
-                    lbl_status.setStyleSheet(
-                        "background-color: #fee2e2; color: #b91c1c; font-size: 11pt; "
-                        "font-weight: 700; border-radius: 10px; padding: 6px 12px;"
-                    )
+        if lbl_status:
+            if is_connected:
+                lbl_status.setText(f"● BAĞLI ({message})")
+                lbl_status.setStyleSheet(
+                    "background-color: #dcfce7; color: #15803d; font-size: 11pt; "
+                    "font-weight: 700; border-radius: 10px; padding: 6px 12px;"
+                )
+            else:
+                lbl_status.setText(f"● BAĞLI DEĞİL ({message})")
+                lbl_status.setStyleSheet(
+                    "background-color: #fee2e2; color: #b91c1c; font-size: 11pt; "
+                    "font-weight: 700; border-radius: 10px; padding: 6px 12px;"
+                )
 
-            self.window.statusbar.showMessage(message, 4000)
+        self.window.statusbar.showMessage(message, 4000)
 
+
+class SplashOverlay(QWidget):
+    """Açılışta tüm ekranı kaplayan, logo ve yazıyı birlikte gösteren animasyon katmanı"""
+
+    # =========================================================================
+    # 1. KURUCU VE ARAYÜZ ÇİZİM METOTLARI
+    # =========================================================================
+    def __init__(self, parent, logo_path="assets/logo-no-background.png"):
+        super().__init__(parent)
+        self.setGeometry(0, 0, parent.width(), parent.height())
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setSpacing(30)
+
+        # Logo Görseli
+        if os.path.exists(logo_path):
+            self.logo_label = QLabel(self)
+            self.logo_label.setAlignment(Qt.AlignCenter)
+            self.logo_label.setStyleSheet("background: transparent;")
+            pixmap = QPixmap(logo_path)
+            scaled = pixmap.scaled(600, 480, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.logo_label.setPixmap(scaled)
+            layout.addWidget(self.logo_label)
+
+        # Başlık Yazısı
+        self.title_label = QLabel("BMT MACH - Hidromobil", self)
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setStyleSheet(
+            "font-size: 32px; font-weight: bold; color: #212529; background: transparent;"
+        )
+        layout.addWidget(self.title_label)
+
+        # Opaklık efekti
+        self.opacity_effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self.opacity_effect)
+        self.opacity_effect.setOpacity(1.0)
+
+        self.start_animation()
+
+    def paintEvent(self, event):
+        """Arka planı tamamen opak boyar, arkadaki ekranı gizler"""
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), QColor("#f8f9fa"))
+
+    # =========================================================================
+    # 2. ANİMASYON KONTROL METOTLARI
+    # =========================================================================
+    def start_animation(self):
+        """Logoyu sabit tutup ardından yumuşak geçişle (fade-out) kapatır"""
+        self.hold = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.hold.setDuration(1000)
+        self.hold.setStartValue(1.0)
+        self.hold.setEndValue(1.0)
+
+        self.fade_out = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.fade_out.setDuration(800)
+        self.fade_out.setStartValue(1.0)
+        self.fade_out.setEndValue(0.0)
+        self.fade_out.setEasingCurve(QEasingCurve.InOutCubic)
+
+        self.anim_group = QSequentialAnimationGroup(self)
+        self.anim_group.addAnimation(self.hold)
+        self.anim_group.addAnimation(self.fade_out)
+
+        self.anim_group.finished.connect(self.close)
+        self.anim_group.start()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-    # debugmode=True yaparsanız logo animasyonu atlanır ve doğrudan ekran açılır
     dashboard = VehicleDashboard(debugmode=False)
 
     app.aboutToQuit.connect(dashboard.uart.stop)
