@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton,
     QStackedWidget, QLabel, QGraphicsOpacityEffect, QSlider)
 from PySide6.QtUiTools import QUiLoader
+from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtCore import (
     QFile, QTimer, Qt, QPropertyAnimation,
     QSequentialAnimationGroup, QEasingCurve)
@@ -21,8 +22,11 @@ class VehicleDashboard:
     # =========================================================================
     def __init__(self, ui_path="mainwindow.ui", qss_path="style.qss", debugmode=False):
         self.debugmode = debugmode
+        
         self.battery_pct = 0
         self.hydrogen_pct = 100
+        self.batteryTempThreshold = 60
+        self.insulationResThreshold = 20
 
         # Arayüz ve stil yüklemeleri
         self.load_stylesheet(qss_path)
@@ -59,6 +63,8 @@ class VehicleDashboard:
         self.uart.connection_status.connect(self.on_serial_status_changed)
         self.uart.connection_status.connect(lambda ok, msg: self.window.statusbar.showMessage(msg))
         self.uart.start()
+
+        self.update_dashboard_telemetry(self.uart.data)
 
     def load_stylesheet(self, qss_path):
         """QSS stil dosyasını okur ve tüm uygulamaya uygular"""
@@ -260,6 +266,16 @@ class VehicleDashboard:
         self.window.chargePowerValue.setText(f"{data['charge_power']:.1f} W")
         self.window.insulationResValue.setText(f"{data['insulation_res']:.0f} Ω")
 
+        if data["battery_temp"] >= self.batteryTempThreshold:
+            self.set_svg_label_color(self.window.batteryTemperatureWarning, "assets/icons/warning_temp.svg", "#EF4444", (40, 40))
+        else:
+            self.set_svg_label_color(self.window.batteryTemperatureWarning, "assets/icons/warning_temp.svg", "#6B7280", (40, 40))
+
+        if data["insulation_res"] >= self.insulationResThreshold:
+            self.set_svg_label_color(self.window.insulationResWarning, "assets/icons/warning_res.svg", "#EF4444", (40, 40))
+        else:
+            self.set_svg_label_color(self.window.insulationResWarning, "assets/icons/warning_res.svg", "#6B7280", (40, 40))
+
     def on_serial_status_changed(self, is_connected: bool, message: str):
         """UART bağlantı durumuna göre durum etiketini ve alt çubuğu günceller"""
         lbl_status = getattr(self, "connectionStatus", None)
@@ -279,6 +295,20 @@ class VehicleDashboard:
                 )
 
         self.window.statusbar.showMessage(message, 4000)
+
+    def set_svg_label_color(self, label, svg_path: str, color_hex: str, size: tuple[int, int] = (24, 24)):
+        """SVG dosyasını belirtilen boyutta ve renkte QLabel'a pixmap olarak yükler."""
+        renderer = QSvgRenderer(svg_path)
+        pixmap = QPixmap(size[0], size[1])
+        pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pixmap)
+        renderer.render(painter)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.fillRect(pixmap.rect(), QColor(color_hex))
+        painter.end()
+
+        label.setPixmap(pixmap)
 
 
 class SplashOverlay(QWidget):

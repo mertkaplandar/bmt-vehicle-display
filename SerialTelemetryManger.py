@@ -37,7 +37,7 @@ class SerialTelemetryManager(QThread):
                 timeout=0.05
             )
             self._running = True
-            self.connection_status.emit(True, f"{self.port} ({self.baudrate} bps)")
+            self.connection_status.emit(True, f"{self.port} ({self.baudrate})")
         except serial.SerialException as e:
             self.connection_status.emit(False, f"Port hatası")
             return
