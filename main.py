@@ -50,7 +50,7 @@ class VehicleDashboard:
             self.splash.raise_()
 
         # UART seri haberleşme başlatma
-        self.connectionStatus = self.window.findChild(QLabel, "lbl_com_status")
+        self.connectionStatus = self.window.findChild(QLabel, "connectionStatus")
         if self.connectionStatus:
             self.connectionStatus.setText("● COM Port: Bağlanıyor...")
 
