@@ -44,8 +44,8 @@ class VehicleDashboard:
         self.window.setWindowIcon(QIcon(icon_path))
 
         self.window.setFixedSize(1024, 600)
-        self.window.show()
-        # self.window.setCursor(Qt.BlankCursor)
+        self.window.showFullScreen()
+        self.window.setCursor(Qt.BlankCursor)
 
         # Açılış ekranı (Splash)
         if not self.debugmode:
@@ -58,12 +58,13 @@ class VehicleDashboard:
         if self.connectionStatus:
             self.connectionStatus.setText("● COM Port: Bağlanıyor...")
 
-        self.uart = SerialTelemetryManager(port="COM3", baudrate=115200, header="<", footer=">")
+        self.uart = SerialTelemetryManager(port="/dev/serial0", baudrate=115200, header="<", footer=">")
         self.uart.telemetry_received.connect(self.update_dashboard_telemetry)
         self.uart.connection_status.connect(self.on_serial_status_changed)
         self.uart.connection_status.connect(lambda ok, msg: self.window.statusbar.showMessage(msg))
         self.uart.start()
 
+        self.window.stackedWidget.setCurrentIndex(0)
         self.update_dashboard_telemetry(self.uart.data)
 
     def load_stylesheet(self, qss_path):
