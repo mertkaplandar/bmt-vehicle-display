@@ -1,0 +1,28 @@
+{
+  "ui": {
+    "full_screen": false,
+    "hide_cursor": false,
+    "window_width": 1024,
+    "window_height": 600
+  },
+  "serial": {
+    "port": "/dev/serial0",
+    "baudrate": 115200,
+    "header": "<",
+    "footer": ">"
+  },
+  "battery": {
+    "min_voltage": 55.0,
+    "max_voltage": 84.0,
+    "total_capacity_wh": 2500.0
+  },
+  "power_ratio": {
+    "default_battery_pct": 80,
+    "default_hydrogen_pct": 20,
+    "step_delta": 5
+  },
+  "thresholds": {
+    "battery_temp_warning_c": 60.0,
+    "insulation_res_warning_ohm": 20.0
+  }
+}

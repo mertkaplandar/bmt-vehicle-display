@@ -30,7 +30,7 @@
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="mainPage">
        <widget class="QWidget" name="speedGaugeContainer" native="true">
@@ -172,6 +172,12 @@
           <layout class="QGridLayout" name="batteryTemperatureGrid">
            <item row="1" column="0" colspan="2">
             <widget class="QLabel" name="batteryTemperatureValue">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>batteryTemperature</string>
              </property>
@@ -348,6 +354,14 @@
            </item>
            <item row="1" column="2">
             <widget class="QLabel" name="insulationResWarning">
+             <property name="font">
+              <font>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="lineWidth">
+              <number>1</number>
+             </property>
              <property name="text">
               <string/>
              </property>
